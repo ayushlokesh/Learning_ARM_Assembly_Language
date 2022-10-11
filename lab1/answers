@@ -31,12 +31,12 @@ Only 2 registers (other than the PC register) change value:
 
 Q7) register (2) counts down from (03) to (00)
 
-Q8) the final value of register (?) is the (?) (hint: arithmetic operation) of memory locations (?) and (?)
+Q8) the final value of register (0) is the (MULTIPLICATION) (hint: arithmetic operation) of memory locations (jack=0x002C) and (jill=0x0030)
 
 
 Part 2
 
-Q9) The memory location for "tom" (?) because (?) 
+Q9) The memory location for "tom" (CHANGES from THE VALUE '00000000' to THE VALUE '0000000C') because (OF THE "STR R0, tom" INSTRUCTION, WHICH STORED THE FINAL VALUE OF R0 WHICH WAS "0000000C") 
 
 Q10) If you reset and run the program again without reloading it then what
-happens to the value of "tom" and why: (?)
+happens to the value of "tom" and why: (THE OF VALUE tom BECOMES 00000018 BECAUSE WHEN WE RESET THE PROGRAM AGAIN WITHOUT RELOADING IT, WHAT IT ACTUALLY DID WAS, IT DIDN'T RESET THE DATA OF THE REGISTERS AND THE MEMORY, AND STARTED THE PROGRAM WITH THE DATA - WHICH WAS THE RESULT OF THE PREVIOUS PROGRAM.)
