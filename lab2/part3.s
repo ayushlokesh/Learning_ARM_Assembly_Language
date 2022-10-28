@@ -1,12 +1,6 @@
 ; Hello Someone program - version 1
 
-	B main
-
-hello	DEFB	"Hello \0"
-goodbye	DEFB	"and good-bye!\n\0"
-	ALIGN
-
-main	ADR	R0, hello	; printf("Hello ")
+	ADR	R0, hello	; printf("Hello ")
 	SVC 	3
 
 	; while R0 != 10 {// translate to ARM code
@@ -21,3 +15,6 @@ loop	SVC	1		; input a character to R0
 	SVC	3
 
 	SVC  	2		; stop the program
+hello	DEFB	"Hello \0"	
+goodbye	DEFB	"and good-bye!\n\0"
+	ALIGN
