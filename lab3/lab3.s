@@ -23,26 +23,43 @@ s9	DEFB "twenty\0"
 
 ;************************** part 1 **************************
 printstring
-	MOV  R0,R1	; given
-	SVC  3		; given
-; your code goes here, replacing the previous 2 lines
-	MOV  R0, #10	; given - output end-of-line
+		;MOV  R0,R1 given
+		;SVC  3 given
+        LDRB R0, [R1], #1; your code goes here, replacing the previous 2 lines
+        CMP R0, #0
+	MOVEQ  R0, #10	; given - output end-of-line
 	SVC  0		; given
+	BNE  printstring
 	MOV  PC, LR	; given
 
 ;************************** part 2 ***************************
 strcat
-; your code goes here
+        LDRB R0, [R1], #1; your code goes here
+	CMP R0, #0
+	BNE strcat
+	SUB R1, R1, #1
+loop    LDRB R0, [R2], #1
+        STRB R0, [R1], #1
+        CMP R0, #0
+        BNE loop
 	MOV  PC, LR
 
 strcpy
-; your code goes here
+        LDRB R0, [R2], #1; your code goes here
+	CMP R0, #0
+	STRB R0, [R1], #1
+	BNE strcpy
 	MOV  PC, LR
 
 ;************************** part 3 **************************
 sorted	STR LR, return2	; given
-; your code goes here
-	LDR  PC, return2 ; given
+loop1   CMP R0, #0
+	BEQ RETURN
+	LDRB  R0, [R2], #1    ; your code goes here
+        LDRB  R1, [R3], #1
+        CMP R0, R1
+        BEQ loop1
+RETURN	LDR  PC, return2 ; given
 return2 DEFW 0		; given
 
 ;*********************** the various parts ********************
@@ -128,3 +145,4 @@ part3	ADR R2, s1
 	ADR R3, s8
 	BL  test2
 	SVC 2
+	
