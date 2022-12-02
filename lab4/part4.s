@@ -28,6 +28,25 @@ pMonth		DEFW	11		;  pMonth = 11  //or whatever is this month
 pYear		  DEFW	2005	;  pYear = 2005 //or whatever is this year
 
 
+
+;def printDate(dd,mm,yyyy)
+;R7 = Day
+;R8 = Month
+;R9 = Year	
+printDate	STMFD   SP!, {LR}
+			MOV	R0, R7
+			SVC	print_no
+			MOV	R0, #'/'
+			SVC	print_char
+			MOV	R0, R8
+			SVC	print_no
+			MOV	R0, #'/'
+			SVC	print_char
+			MOV	R0, R9
+			SVC	print_no
+			LDMFD   SP!, {LR}
+			MOV	PC, LR
+
 ; def printAgeHistory (bDay, bMonth, bYear)
 
 ; parameters
@@ -39,11 +58,11 @@ pYear		  DEFW	2005	;  pYear = 2005 //or whatever is this year
 ;  R5 = age
 ;  R6 = bDay - originally R0
 
-printAgeHistory	STMFD   SP!, {R1-R2, R4-R6}			; callee saves three registers
+printAgeHistory	STMFD   SP!, {LR}
+		STMFD   SP!, {R0-R2, R4-R6}			; callee saves three registers
 		
-		LDR	R6, [SP, #(5 + 2) * 4]	; Get parameters from stack
-		LDR	R1, [SP, #(5 + 1) * 4]
-		LDR	R2, [SP, #(5 + 0) * 4]
+		MOV	R6, R0 	; Get parameters from stack
+		
 
 ;   year = bYear + 1
 		ADD	R4, R2, #1
@@ -53,23 +72,29 @@ printAgeHistory	STMFD   SP!, {R1-R2, R4-R6}			; callee saves three registers
 ; print("This person was born on " + str(bDay) + "/" + str(bMonth) + "/" + str(bYear))
 		ADRL	R0, wasborn
 		SVC	print_str
-		MOV	R0, R6
-		SVC	print_no
-		MOV	R0, #'/'
-		SVC	print_char
-		MOV	R0, R1
-		SVC	print_no
-		MOV	R0, #'/'
-		SVC	print_char
-		MOV	R0, R2
-		SVC	print_no
+		STMFD   SP!, {R7-R9}
+		MOV	R7, R6
+		MOV	R8, R1
+		MOV	R9, R2
+		BL      printDate
+		LDMFD   SP!, {R7-R9}
 		MOV	R0, #cLF
 		SVC	print_char
 
 ; this code does: while year < pYear //{
 loop1	LDR	R0, pYear
-		CMP	R4, R0
-		BHS	end1		; Years are unsigned
+		CMP	R0, R4
+		BLO     end1
+		LDREQ   R0, pMonth
+		CMPEQ   R0, R1
+		BLO     end1
+		LDREQ   R0, pDay
+		CMPEQ   R0, R6
+		BLS	end1		; Years are unsigned
+		
+		
+		
+		
 ; for part 4, should be changed to:
 ; while year < pYear or
 ;				(year == pYear and bMonth < pMonth) or
@@ -82,16 +107,12 @@ loop1	LDR	R0, pYear
 		SVC	print_no
 		ADRL	R0, on
 		SVC	print_str
-		MOV	R0, R6
-		SVC	print_no
-		MOV	R0, #'/'
-		SVC	print_char
-		MOV	R0, R1
-		SVC	print_no
-		MOV	R0, #'/'
-		SVC	print_char
-		MOV	R0, R4
-		SVC	print_no
+		STMFD   SP!, {R7-R9}
+		MOV	R7, R6
+		MOV	R8, R1
+		MOV	R9, R4
+		BL      printDate
+		LDMFD   SP!, {R7-R9}
 		MOV	R0, #cLF
 		SVC	print_char
 
@@ -108,6 +129,8 @@ end1
 ; if (bMonth == pMonth and bDay == pDay):
 		LDR	R0, pMonth
 		CMP	R1, R0
+		LDREQ   R0, pDay
+		CMPEQ   R0, R6
 		BNE	else1
 
 ; print("This person is " + str(age) + " today!")
@@ -130,22 +153,18 @@ else1
 		SVC	print_no
 		ADRL	R0, on
 		SVC	print_str
-		MOV	R0, R6
-		SVC	print_no
-		MOV	R0, #'/'
-		SVC	print_char
-		MOV	R0, R1
-		SVC	print_no
-		MOV	R0, #'/'
-		SVC	print_char
-		MOV	R0, R4
-		SVC	print_no
+		STMFD   SP!, {R7-R9}
+		MOV	R7, R6
+		MOV	R8, R1
+		MOV	R9, R4
+		BL      printDate
+		LDMFD   SP!, {R7-R9}
 		MOV	R0, #cLF
 		SVC	print_char
 
 ; }// end of printAgeHistory
-end2		LDMFD   SP!, {R1-R2, R4-R6}		; callee saved registers
-		
+end2		LDMFD   SP!, {R0-R2, R4-R6}		; callee saved registers
+		LDMFD   SP!, {LR}
 		MOV	PC, LR
 
 another		DEFB	"Another person",10,0
@@ -159,13 +178,13 @@ main
 
 ; printAgeHistory(pDay, pMonth, 2000)
 		LDR	R0, pDay
-		STMFD	SP!, {R0}			; Stack first parameter
-		LDR	R0, pMonth
-		STMFD	SP!, {R0}			; Stack second parameter
-		MOV	R0, #2000
-		STMFD	SP!, {R0}			; Stack third parameter
+					;STMFD	SP!, {R0} Stack first parameter
+		LDR	R1, pMonth
+					;STMFD	SP!, {R0} Stack second parameter
+		MOV	R2, #2000
+					;STMFD	SP!, {R0} Stack third parameter
 		BL	printAgeHistory
-		ADD     SP, SP, #12		; Deallocate three 32-bit variables
+					;ADD     SP, SP, #12 Deallocate three 32-bit variables
 
 ; print("Another person");
 		ADRL	R0, another
@@ -173,13 +192,13 @@ main
 
 ; printAgeHistory(13, 11, 2000)
 		MOV	R0, #13
-		STMFD	SP!, {R0}			; Stack first parameter
-		MOV	R0, #11
-		STMFD	SP!, {R0}		; An explicit coding of PUSH
-		MOV	R0, #2000
-		STMFD	SP!, {R0}		; The STore Multiple mnemonic for PUSH {R0}
+					;STMFD	SP!, {R0} Stack first parameter
+		MOV	R1, #11
+					;STMFD	SP!, {R0} An explicit coding of PUSH
+		MOV	R2, #2000
+					;STMFD	SP!, {R0} The STore Multiple mnemonic for PUSH {R0}
 		BL	printAgeHistory
-		ADD     SP, SP, #12  		; Deallocate three 32-bit variables
+		  			;ADD     SP, SP, #12 Deallocate three 32-bit variables
 
 	; Now check to see if register values intact (Not part of Java)
 	LDR	R0, =&12345678		; Test value
@@ -202,3 +221,4 @@ main
 
 whoops1		DEFB	"\n** BUT YOU CORRUPTED REGISTERS!  **\n", 0
 whoops2		DEFB	"\n** BUT YOUR STACK DIDN'T BALANCE!  **\n", 0
+

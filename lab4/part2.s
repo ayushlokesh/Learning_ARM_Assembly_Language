@@ -39,11 +39,10 @@ pYear		  DEFW	2005	;  pYear = 2005 //or whatever is this year
 ;  R5 = age
 ;  R6 = bDay - originally R0
 
-printAgeHistory	STMFD   SP!, {R1-R2, R4-R6}			; callee saves three registers
+printAgeHistory	STMFD   SP!, {R0-R2, R4-R6}			; callee saves three registers
 		
-		LDR	R6, [SP, #(5 + 2) * 4]	; Get parameters from stack
-		LDR	R1, [SP, #(5 + 1) * 4]
-		LDR	R2, [SP, #(5 + 0) * 4]
+		MOV	R6, R0 	; Get parameters from stack
+		
 
 ;   year = bYear + 1
 		ADD	R4, R2, #1
@@ -144,7 +143,7 @@ else1
 		SVC	print_char
 
 ; }// end of printAgeHistory
-end2		LDMFD   SP!, {R1-R2, R4-R6}		; callee saved registers
+end2		LDMFD   SP!, {R0-R2, R4-R6}		; callee saved registers
 		
 		MOV	PC, LR
 
@@ -158,28 +157,31 @@ main
 	MOV	R6, R4
 
 ; printAgeHistory(pDay, pMonth, 2000)
+		STMFD   SP!, {R0-R2}
 		LDR	R0, pDay
-		STMFD	SP!, {R0}			; Stack first parameter
-		LDR	R0, pMonth
-		STMFD	SP!, {R0}			; Stack second parameter
-		MOV	R0, #2000
-		STMFD	SP!, {R0}			; Stack third parameter
+					;STMFD	SP!, {R0} Stack first parameter
+		LDR	R1, pMonth
+					;STMFD	SP!, {R0} Stack second parameter
+		MOV	R2, #2000
+					;STMFD	SP!, {R0} Stack third parameter
 		BL	printAgeHistory
-		ADD     SP, SP, #12		; Deallocate three 32-bit variables
+					;ADD     SP, SP, #12 Deallocate three 32-bit variables
+		LDMFD   SP!, {R0-R2}
 
 ; print("Another person");
 		ADRL	R0, another
 		SVC	print_str
 
 ; printAgeHistory(13, 11, 2000)
+		STMFD   SP!, {R0-R2}
 		MOV	R0, #13
-		STMFD	SP!, {R0}			; Stack first parameter
-		MOV	R0, #11
-		STMFD	SP!, {R0}		; An explicit coding of PUSH
-		MOV	R0, #2000
-		STMFD	SP!, {R0}		; The STore Multiple mnemonic for PUSH {R0}
+					;STMFD	SP!, {R0} Stack first parameter
+		MOV	R1, #11
+					;STMFD	SP!, {R0} An explicit coding of PUSH
+		MOV	R2, #2000
+					;STMFD	SP!, {R0} The STore Multiple mnemonic for PUSH {R0}
 		BL	printAgeHistory
-		ADD     SP, SP, #12  		; Deallocate three 32-bit variables
+		LDMFD   SP!, {R0-R2}  			;ADD     SP, SP, #12 Deallocate three 32-bit variables
 
 	; Now check to see if register values intact (Not part of Java)
 	LDR	R0, =&12345678		; Test value
